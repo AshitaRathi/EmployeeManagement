@@ -1,4 +1,3 @@
-Employee Management System
 The Employee Management System is designed to manage employee details, job roles, and team assignments within an organization. The system allows administrators to view, add, update, and delete employee information, and associate employees with job roles and teams. This project uses Entity Framework for CRUD operations and defines the database schema using DBML (Database Markup Language). Additionally, JWT (JSON Web Token) authentication is implemented to secure user access.
 
 Features
