@@ -1,0 +1,218 @@
+﻿@model IEnumerable<EmployeeManagement.Models.Employee>
+
+@{
+    ViewData["Title"] = "Employee List";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .btn {
+            margin: 5px;
+        }
+
+        .table th {
+            background-color: #343a40;
+            color: white;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>@ViewData["Title"]</h1>
+
+        <form method="get" asp-action="Create" class="inline" id="create-form">
+            <button type="button" class="btn btn-primary" onclick="submitCreateForm()">Create a Employee</button>
+        </form>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.Gender)</th>
+                    <th>@Html.DisplayNameFor(model => model.PhoneNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.Email)</th>
+                    <th>@Html.DisplayNameFor(model => model.DateOfBirth)</th>
+                    <th>@Html.DisplayNameFor(model => model.HireDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.TotalExperience)</th>
+                    <th>@Html.DisplayNameFor(model => model.Team)</th>
+                    <th>@Html.DisplayNameFor(model => model.Job)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Gender)</td>
+                        <td>@Html.DisplayFor(modelItem => item.PhoneNumber)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        <td>@Html.DisplayFor(modelItem => item.DateOfBirth)</td>
+                        <td>@Html.DisplayFor(modelItem => item.HireDate)</td>
+                        <td>@Html.DisplayFor(modelItem => item.TotalExperience)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Team.Name)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Job.Title)</td>
+                        <td>
+                            <form method="get" asp-action="Edit" asp-route-id="@item.Id" class="inline" id="edit-form-@item.Id">
+                                <button type="button" class="btn btn-warning" onclick="submitEditForm(@item.Id)">Edit</button>
+                            </form>
+
+                            <form class="inline" id="delete-form-@item.Id">
+                                <button type="button" class="btn btn-danger" onclick="submitDeleteForm(@item.Id)">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <form class="inline" id="home-index">
+            <button type="button" class="btn btn-danger" onclick="submitHomeIndex()">Return to Home</button>
+        </form>
+    </div>
+
+    <script>
+        const token = sessionStorage.getItem('EmployeeToken');
+        console.log("Token" + token);
+        
+        fetch('/api/Employee/Index', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => {
+            if (response.status === 401) {
+                alert("Session expired. Please log in again.");
+                window.location.href = '/api/Home';
+            } else if (!response.ok) {
+                throw new Error("Failed to fetch data.");
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); 
+        })
+        .catch(error => console.error('Error:', error));
+
+        function submitHomeIndex() {
+            const form = document.getElementById(`home-index`);
+            const actionUrl = form.action;
+
+            fetch(actionUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/api/Home/Index';
+                } else {
+                    window.location.href = `/api/Home/Index`;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function submitEditForm(id) {
+            const form = document.getElementById(`edit-form-${id}`);
+            const actionUrl = form.action;
+
+            fetch(actionUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/api/Home';  
+                } else {
+                    window.location.href = `/api/Employee/Edit/${id}`;  
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function submitDeleteForm(id) {
+            const form = document.getElementById(`delete-form-${id}`);
+            const actionUrl = `/api/Employee/Delete/${id}`;  
+
+            fetch(actionUrl, {
+                method: 'GET',  
+                headers: {
+                    'Authorization': `Bearer ${token}`,  
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/api/Home'; 
+                } else if (response.ok) {
+                    window.location.href = `/api/Employee/Delete/${id}`;  
+                } else {
+                    alert('Failed to delete job');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function submitCreateForm() {
+            const form = document.getElementById('create-form');
+            const actionUrl = form.action;
+
+            fetch(actionUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+              },
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/api/Home';
+                } else if (response.ok) {
+                    window.location.href = '/api/Employee/Create';
+                } else {
+                    alert('Failed to create employee');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+</body>
+</html>

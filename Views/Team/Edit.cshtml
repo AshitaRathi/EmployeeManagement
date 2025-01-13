@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+            .form-container h2 {
+                text-align: center;
+                color: #333;
+                margin-bottom: 20px;
+            }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #555;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+
+                .form-group input:focus {
+                    border-color: #007bff;
+                    outline: none;
+                }
+
+        .error {
+            color: #ff0000;
+            font-size: 12px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-submit:hover {
+                background-color: #0056b3;
+            }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Edit Team</h2>
+        <form id="teamForm">
+            <div class="form-group">
+                <label for="Name">Name:</label>
+                <input type="text" id="Name" name="Name" value="@Model.Name" required />
+            </div>
+
+            @Html.AntiForgeryToken()
+
+            <button type="button" id="submitButton" class="btn-submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('submitButton').addEventListener('click', function () {
+            let isValid = true;
+
+            if (isValid) {
+                const form = document.getElementById('teamForm');
+                const formData = new FormData(form);
+                const formObject = {};
+                formData.forEach((value, key) => {
+                    formObject[key] = value;
+                });
+
+                const formJson = JSON.stringify(formObject);
+                console.log('Form Data in JSON:', formJson);
+
+                // Retrieve the token from sessionStorage
+                const token = sessionStorage.getItem('EmployeeToken');
+                const id = @Html.Raw(Model.Id);
+                fetch(`/api/Team/Edit/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': formObject['__RequestVerificationToken'],
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formJson,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        if (data.success && data.redirectUrl) {
+                            window.location.href = data.redirectUrl; 
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        });
+    </script>
+
+</body>
+</html>
